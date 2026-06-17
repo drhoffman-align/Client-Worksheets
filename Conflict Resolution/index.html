@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Conflict Resolution Rubric</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root{
+  --bg:#f5f4fa;
+  --surface:#ffffff;
+  --ink:#2d2540;
+  --muted:#9490a8;
+  --line:#ece8f5;
+  --accent:#2d2245;
+  --gold:#d4af6a;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'DM Sans',sans-serif;
+}
+.app{ max-width:560px; margin:0 auto; padding:26px 18px 50px; }
+
+header.top{ text-align:center; margin-bottom:8px; }
+.brand{ font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); font-weight:600; margin:0 0 6px; }
+h1{ font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:700; color:var(--ink); margin:0 0 6px; }
+.tagline{ font-size:13px; color:var(--muted); margin:0; }
+
+.steps-nav{ display:flex; justify-content:space-between; gap:3px; margin:22px 0 20px; }
+.step-dot{ flex:1; text-align:center; cursor:pointer; }
+.step-dot .num{
+  width:24px; height:24px; border-radius:50%; background:var(--surface); border:1.5px solid var(--line);
+  display:flex; align-items:center; justify-content:center; margin:0 auto 4px; font-size:11px; font-weight:600;
+  color:var(--muted); transition:all .15s;
+}
+.step-dot.active .num{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.step-dot.done .num{ border-color:var(--gold); color:var(--gold); }
+.step-dot .lbl{ font-size:8.5px; color:var(--muted); line-height:1.2; }
+.step-dot.active .lbl{ color:var(--ink); font-weight:600; }
+
+.step-panel{ display:none; }
+.step-panel.active{ display:block; }
+
+.card{ background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:20px 18px; margin-bottom:14px; }
+.card h2{ font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:700; color:var(--ink); margin:0 0 6px; }
+.card > .hint{ font-size:12px; color:var(--muted); margin:0 0 14px; line-height:1.5; }
+
+label.field-label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink); margin:14px 0 4px; }
+label.field-label:first-of-type{ margin-top:0; }
+.field-hint{ font-size:11.5px; color:var(--muted); margin:0 0 6px; line-height:1.45; }
+
+textarea.field, input.field{
+  width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px;
+  font-family:inherit; font-size:13.5px; color:var(--ink); background:#fff; resize:vertical;
+}
+textarea.field{ min-height:68px; line-height:1.45; }
+textarea.field:focus, input.field:focus{ outline:none; border-color:var(--accent); }
+
+#selected-box{ background:#fff; border-radius:14px; border:1px solid var(--line); padding:14px 16px; margin-bottom:14px; min-height:54px; display:flex; align-items:center; gap:12px; }
+#sel-dot{ width:14px; height:14px; border-radius:7px; flex-shrink:0; background:#ddd8f0; transition:background .25s; }
+.chip{ padding:5px 12px; border-radius:16px; font-size:11px; font-weight:600; cursor:pointer; border:none; }
+.chip:hover{ opacity:.85; }
+
+.feeling-row{ display:flex; flex-direction:column; gap:6px; padding:10px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; }
+.feeling-row .fr-top{ display:flex; align-items:center; justify-content:space-between; }
+.feeling-row .fr-name{ display:flex; align-items:center; gap:7px; font-weight:700; font-family:'Cormorant Garamond',serif; font-size:15px; }
+.fr-dot{ width:10px; height:10px; border-radius:50%; flex:0 0 auto; }
+.fr-remove{ border:none; background:transparent; color:var(--muted); cursor:pointer; font-size:12px; }
+.fr-remove:hover{ color:#a23b3b; }
+
+.feeling-card{ border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; }
+.feeling-card h3{ font-family:'Cormorant Garamond',serif; font-size:17px; display:flex; align-items:center; gap:8px; margin:0 0 6px; }
+.fc-dot{ width:11px; height:11px; border-radius:50%; flex:0 0 auto; }
+
+.checklist{ display:flex; flex-direction:column; gap:9px; margin-bottom:6px; }
+.checklist label{ display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--ink); cursor:pointer; }
+.checklist input{ margin-top:2px; }
+
+.format-options{ display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+.format-pill{ border:1px solid var(--line); border-radius:999px; padding:6px 13px; font-size:12.5px; cursor:pointer; background:#fff; }
+.format-pill.selected{ background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.nav-buttons{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px; }
+button{ font-family:inherit; }
+.nav-btn{ border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:10px; padding:10px 18px; font-size:13.5px; cursor:pointer; }
+.nav-btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.nav-btn:disabled{ opacity:.35; cursor:default; }
+.step-indicator{ font-size:12px; color:var(--muted); }
+
+.empty-note{ text-align:center; color:var(--muted); font-size:13px; padding:24px 10px; }
+.empty-note button{ margin-top:10px; }
+
+.output-box{
+  white-space:pre-wrap; font-size:12.5px; line-height:1.6; color:var(--ink);
+  background:#fbfaff; border:1px solid var(--line); border-radius:12px; padding:16px;
+  max-height:420px; overflow-y:auto;
+}
+.copy-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+
+.app-footer{ text-align:center; margin-top:24px; font-size:11px; color:var(--muted); line-height:1.7; }
+.app-footer .fname{ color:var(--ink); font-weight:600; letter-spacing:.03em; }
+.saved-pill{ font-size:11px; color:var(--accent); opacity:0; transition:opacity .3s; display:block; text-align:center; margin-top:8px; }
+.saved-pill.show{ opacity:1; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <p class="brand">Alignment Psychiatry</p>
+    <h1>Conflict Resolution Rubric</h1>
+    <p class="tagline">Process emotions for yourself. Being heard by others is the bonus.</p>
+  </header>
+
+  <div class="steps-nav" id="stepsNav"></div>
+
+  <main id="stepPanel"></main>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" id="backBtn">&larr; Back</button>
+    <span class="step-indicator" id="stepIndicator"></span>
+    <button class="nav-btn primary" id="nextBtn">Next &rarr;</button>
+  </div>
+
+  <div style="text-align:center;margin-top:14px;">
+    <button class="nav-btn" id="startOverBtn">Start a new entry</button>
+  </div>
+  <span class="saved-pill" id="savedPill">Saved on this device</span>
+
+  <footer class="app-footer">
+    <div class="fname">ALIGNMENT PSYCHIATRY</div>
+    <div>Dr. Christopher J. Hoffman, MD</div>
+    <div>Everything you write here stays on this device only.</div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+
+  // ===================== Feelings Wheel data =====================
+  const WHEEL = [
+    { core:"Sad", color:"#5a6ea0", light:"#c8d2e8", text:"#2a3a60",
+      mid:[
+        { name:"Lonely", outer:["Isolated","Abandoned","Left out","Excluded"] },
+        { name:"Hurt", outer:["Betrayed","Neglected","Wounded","Dismissed"] },
+        { name:"Depressed", outer:["Hopeless","Grief","Empty","Numb"] },
+        { name:"Regretful", outer:["Remorseful","Ashamed","Guilty","Sorry"] },
+      ]},
+    { core:"Angry", color:"#8b3a3a", light:"#ddb8b8", text:"#4a1a1a",
+      mid:[
+        { name:"Frustrated", outer:["Irritated","Annoyed","Impatient","Agitated"] },
+        { name:"Resentful", outer:["Bitter","Jealous","Envious","Betrayed"] },
+        { name:"Critical", outer:["Judgmental","Dismissive","Contempt","Skeptical"] },
+        { name:"Distant", outer:["Withdrawn","Numb","Detached","Cold"] },
+      ]},
+    { core:"Scared", color:"#7a4a8a", light:"#d0b8da", text:"#3a1a4a",
+      mid:[
+        { name:"Anxious", outer:["Worried","Nervous","Overwhelmed","Dread"] },
+        { name:"Insecure", outer:["Inadequate","Inferior","Worthless","Exposed"] },
+        { name:"Helpless", outer:["Powerless","Trapped","Vulnerable","Weak"] },
+        { name:"Rejected", outer:["Excluded","Unwanted","Unloved","Invisible"] },
+      ]},
+    { core:"Disgusted", color:"#6b7a40", light:"#c8d0a0", text:"#2a3210",
+      mid:[
+        { name:"Disapproving", outer:["Horrified","Appalled","Revolted","Offended"] },
+        { name:"Disappointed", outer:["Let down","Dismayed","Displeased","Disillusioned"] },
+        { name:"Awful", outer:["Nauseated","Detestable","Repelled","Averse"] },
+        { name:"Repelled", outer:["Hesitant","Judgmental","Loathing","Avoidant"] },
+      ]},
+    { core:"Happy", color:"#7a8840", light:"#ccd0a0", text:"#2a3010",
+      mid:[
+        { name:"Joyful", outer:["Elated","Euphoric","Excited","Thrilled"] },
+        { name:"Peaceful", outer:["Calm","Content","Serene","Grateful"] },
+        { name:"Hopeful", outer:["Optimistic","Inspired","Trusting","Motivated"] },
+        { name:"Proud", outer:["Confident","Fulfilled","Worthy","Accomplished"] },
+      ]},
+    { core:"Surprised", color:"#c9a84c", light:"#e8d898", text:"#5a3a00",
+      mid:[
+        { name:"Amazed", outer:["Astonished","Awestruck","Stunned","Speechless"] },
+        { name:"Excited", outer:["Energized","Eager","Enthusiastic","Alive"] },
+        { name:"Confused", outer:["Perplexed","Uncertain","Puzzled","Lost"] },
+        { name:"Startled", outer:["Shocked","Disbelief","Rattled","Caught off guard"] },
+      ]},
+  ];
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const R_CORE = 42, R_MID = 88, R_OUT = 138;
+
+  function polarToXY(angleDeg, r){
+    const a = (angleDeg - 90) * Math.PI / 180;
+    return [r * Math.cos(a), r * Math.sin(a)];
+  }
+  function arcPath(r1, r2, startDeg, endDeg){
+    const [x1,y1] = polarToXY(startDeg, r1);
+    const [x2,y2] = polarToXY(endDeg, r1);
+    const [x3,y3] = polarToXY(endDeg, r2);
+    const [x4,y4] = polarToXY(startDeg, r2);
+    const large = (endDeg - startDeg) > 180 ? 1 : 0;
+    return "M " + x1 + " " + y1 + " A " + r1 + " " + r1 + " 0 " + large + " 1 " + x2 + " " + y2 +
+           " L " + x3 + " " + y3 + " A " + r2 + " " + r2 + " 0 " + large + " 0 " + x4 + " " + y4 + " Z";
+  }
+  function textOnArc(txt, r, midDeg, maxChars){
+    if (txt.length > maxChars) txt = txt.slice(0, maxChars - 1) + "...";
+    const a = (midDeg - 90) * Math.PI / 180;
+    const x = r * Math.cos(a);
+    const y = r * Math.sin(a);
+    const rot = midDeg > 180 ? midDeg + 90 : midDeg - 90;
+    return { x:x, y:y, rot:rot, txt:txt };
+  }
+  function makeSeg(parent, path, fill, stroke, opacity, data, onClick, onHover){
+    const el = document.createElementNS(SVG_NS, "path");
+    el.setAttribute("d", path);
+    el.setAttribute("fill", fill);
+    el.setAttribute("stroke", stroke);
+    el.setAttribute("stroke-width", "1.5");
+    el.setAttribute("opacity", opacity);
+    el.style.cursor = data.type === "core" ? "default" : "pointer";
+    el.style.transition = "opacity 0.15s";
+    if (data.type !== "core"){
+      el.addEventListener("mouseenter", function(){ el.setAttribute("opacity","1"); if(onHover) onHover(data); });
+      el.addEventListener("mouseleave", function(){ el.setAttribute("opacity", opacity); if(onHover) onHover(null); });
+      el.addEventListener("click", function(){ onClick(data); });
+    }
+    parent.appendChild(el);
+    return el;
+  }
+  function makeText(parent, x, y, rot, txt, size, color, weight){
+    const el = document.createElementNS(SVG_NS, "text");
+    el.setAttribute("x", x); el.setAttribute("y", y);
+    el.setAttribute("text-anchor", "middle");
+    el.setAttribute("dominant-baseline", "middle");
+    el.setAttribute("font-size", size);
+    el.setAttribute("font-family", weight === "serif" ? "'Cormorant Garamond',serif" : "'DM Sans',sans-serif");
+    el.setAttribute("font-weight", weight === "serif" ? "700" : "600");
+    el.setAttribute("fill", color);
+    el.setAttribute("pointer-events", "none");
+    el.setAttribute("transform", "rotate(" + rot + "," + x + "," + y + ")");
+    el.textContent = txt;
+    parent.appendChild(el);
+    return el;
+  }
+
+  function buildWheel(){
+    const svg = document.getElementById("wheel");
+    if (!svg) return;
+    svg.innerHTML = "";
+    const g = document.createElementNS(SVG_NS, "g");
+    svg.appendChild(g);
+
+    const totalSectors = WHEEL.length;
+    const degPerCore = 360 / totalSectors;
+
+    WHEEL.forEach(function(core, ci){
+      const cStart = ci * degPerCore;
+      const cEnd = cStart + degPerCore;
+      const cMid = (cStart + cEnd) / 2;
+      const midPerCore = core.mid.length;
+      const degPerMid = degPerCore / midPerCore;
+
+      makeSeg(g, arcPath(0.01, R_CORE, cStart, cEnd), core.color, "#f5f4fa", 1,
+        { name: core.core, color: core.color, type: "core" }, function(){}, null);
+
+      const tp = textOnArc(core.core, R_CORE * 0.62, cMid, 10);
+      makeText(g, tp.x, tp.y, tp.rot, tp.txt, "10", "#fff", "serif");
+
+      core.mid.forEach(function(mid, mi){
+        const mStart = cStart + mi * degPerMid;
+        const mEnd = mStart + degPerMid;
+        const mMid = (mStart + mEnd) / 2;
+        const degPerOut = degPerMid / mid.outer.length;
+
+        makeSeg(g, arcPath(R_CORE + 1, R_MID, mStart, mEnd), core.light, "#f5f4fa", 0.85,
+          { name: mid.name, color: core.color, type: "mid" },
+          function(d){ addToSelected(d.name, d.color); },
+          function(d){ if(d) updateSelectedBox(d.name, d.color); else if(state.feelings.length===0) updateSelectedBox(null,null); }
+        );
+
+        const mp = textOnArc(mid.name, (R_CORE + R_MID) / 2, mMid, 11);
+        makeText(g, mp.x, mp.y, mp.rot, mp.txt, "8.5", core.text, "sans");
+
+        mid.outer.forEach(function(out, oi){
+          const oStart = mStart + oi * degPerOut;
+          const oEnd = oStart + degPerOut;
+          const oMid = (oStart + oEnd) / 2;
+          const alpha = 0.55 + (oi % 2) * 0.12;
+
+          makeSeg(g, arcPath(R_MID + 1, R_OUT, oStart, oEnd), core.light, "#f5f4fa", alpha,
+            { name: out, color: core.color, type: "outer" },
+            function(d){ addToSelected(d.name, d.color); },
+            function(d){ if(d) updateSelectedBox(d.name, d.color); else if(state.feelings.length===0) updateSelectedBox(null,null); }
+          );
+
+          const op = textOnArc(out, (R_MID + R_OUT) / 2, oMid, 13);
+          makeText(g, op.x, op.y, op.rot, op.txt, "7", core.text, "sans");
+        });
+      });
+    });
+
+    const center = document.createElementNS(SVG_NS, "circle");
+    center.setAttribute("cx", 0); center.setAttribute("cy", 0); center.setAttribute("r", 22);
+    center.setAttribute("fill", "#2d2245");
+    g.appendChild(center);
+
+    const cLabel = document.createElementNS(SVG_NS, "text");
+    cLabel.setAttribute("x", 0); cLabel.setAttribute("y", 0);
+    cLabel.setAttribute("text-anchor", "middle");
+    cLabel.setAttribute("dominant-baseline", "middle");
+    cLabel.setAttribute("font-size", "8");
+    cLabel.setAttribute("font-family", "'DM Sans',sans-serif");
+    cLabel.setAttribute("font-weight", "600");
+    cLabel.setAttribute("fill", "#d4af6a");
+    cLabel.setAttribute("pointer-events", "none");
+    cLabel.setAttribute("letter-spacing", "0.5");
+    cLabel.textContent = "FEEL";
+    g.appendChild(cLabel);
+  }
+
+  // ===================== App state =====================
+  function defaultState(){
+    return {
+      goal:"", goalWhy:"",
+      feelings: [],
+      want:"", boundaries:"", consequences:"",
+      reflectionChecks:{ clear:false, iStatements:false, vulnerable:false, noAbsolutes:false },
+      reflectionNotes:"",
+      defensive:"", opening:"", tailoring:"", format:"",
+      draft:""
+    };
+  }
+  let state = defaultState();
+  let currentStep = 1;
+  const TOTAL_STEPS = 8;
+  const STEP_LABELS = ["Goal","Feelings","Explore","Express","Reflect","Prepare","Draft","Prompt"];
+  let saveTimer = null;
+
+  function scheduleSave(){ clearTimeout(saveTimer); saveTimer = setTimeout(persist, 400); }
+  function persist(){
+    try{
+      localStorage.setItem('crr-state', JSON.stringify(state));
+      localStorage.setItem('crr-step', String(currentStep));
+      flashSaved();
+    }catch(e){ console.error('Storage error', e); }
+  }
+  function flashSaved(){
+    const p = document.getElementById('savedPill');
+    p.classList.add('show');
+    setTimeout(function(){ p.classList.remove('show'); }, 900);
+  }
+  function load(){
+    try{
+      const s = localStorage.getItem('crr-state');
+      if (s) state = Object.assign(defaultState(), JSON.parse(s));
+    }catch(e){ state = defaultState(); }
+    try{
+      const st = localStorage.getItem('crr-step');
+      if (st) currentStep = parseInt(st, 10) || 1;
+    }catch(e){ currentStep = 1; }
+  }
+
+  // ===================== Field helpers =====================
+  function addStateField(container, labelTxt, hintTxt, stateKey, placeholder){
+    const label = document.createElement('label');
+    label.className = 'field-label';
+    label.textContent = labelTxt;
+    container.appendChild(label);
+    if (hintTxt){
+      const hint = document.createElement('p');
+      hint.className = 'field-hint';
+      hint.textContent = hintTxt;
+      container.appendChild(hint);
+    }
+    const ta = document.createElement('textarea');
+    ta.className = 'field';
+    if (placeholder) ta.placeholder = placeholder;
+    ta.value = state[stateKey] || "";
+    ta.addEventListener('input', function(e){ state[stateKey] = e.target.value; scheduleSave(); });
+    container.appendChild(ta);
+    return ta;
+  }
+
+  function addQA(container, labelTxt, hintTxt, feelingObj, field){
+    const label = document.createElement('label');
+    label.className = 'field-label';
+    label.textContent = labelTxt;
+    container.appendChild(label);
+    const hint = document.createElement('p');
+    hint.className = 'field-hint';
+    hint.textContent = hintTxt;
+    container.appendChild(hint);
+    const ta = document.createElement('textarea');
+    ta.className = 'field';
+    ta.value = feelingObj[field] || "";
+    ta.addEventListener('input', function(e){ feelingObj[field] = e.target.value; scheduleSave(); });
+    container.appendChild(ta);
+  }
+
+  // ===================== Wheel-driven feelings list =====================
+  function addToSelected(name, color){
+    if (state.feelings.find(function(s){ return s.name === name; })) return;
+    if (state.feelings.length >= 5) return;
+    state.feelings.push({ name:name, color:color, trigger:"", why:"", trueReal:"", evidence:"", alt:"" });
+    renderChips();
+    renderFeelingTriggerList();
+    updateSelectedBox(name, color);
+    scheduleSave();
+  }
+  function removeSelected(name){
+    state.feelings = state.feelings.filter(function(s){ return s.name !== name; });
+    renderChips();
+    renderFeelingTriggerList();
+    if (state.feelings.length === 0) updateSelectedBox(null, null);
+    else {
+      const last = state.feelings[state.feelings.length - 1];
+      updateSelectedBox(last.name, last.color);
+    }
+    scheduleSave();
+  }
+  function updateSelectedBox(feeling, color){
+    const dot = document.getElementById("sel-dot");
+    const txt = document.getElementById("sel-text");
+    if (!dot || !txt) return;
+    if (feeling){
+      dot.style.background = color;
+      txt.style.fontFamily = "'Cormorant Garamond',serif";
+      txt.style.fontSize = "17px";
+      txt.style.fontWeight = "700";
+      txt.style.color = "#2d2540";
+      txt.textContent = feeling;
+    } else {
+      dot.style.background = "#ddd8f0";
+      txt.style.fontFamily = "'DM Sans',sans-serif";
+      txt.style.fontSize = "13px";
+      txt.style.fontWeight = "400";
+      txt.style.color = "#9490a8";
+      txt.textContent = "Tap the wheel to identify a feeling";
+    }
+  }
+  function renderChips(){
+    const chips = document.getElementById("chips");
+    const label = document.getElementById("chips-label");
+    const btn = document.getElementById("continueWheelBtn");
+    if (!chips) return;
+    chips.innerHTML = "";
+    if (state.feelings.length > 0){
+      label.style.display = 'block';
+      btn.style.display = 'block';
+      state.feelings.forEach(function(s){
+        const c = document.createElement("span");
+        c.className = "chip";
+        c.style.background = s.color + "22";
+        c.style.color = s.color;
+        c.style.border = "1.5px solid " + s.color + "55";
+        c.innerHTML = s.name + ' <span style="opacity:0.6;margin-left:3px;">&times;</span>';
+        c.addEventListener("click", function(){ removeSelected(s.name); });
+        chips.appendChild(c);
+      });
+    } else {
+      label.style.display = 'none';
+      btn.style.display = 'none';
+    }
+  }
+  function renderFeelingTriggerList(){
+    const wrap = document.getElementById('triggerList');
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    state.feelings.forEach(function(f){
+      const row = document.createElement('div');
+      row.className = 'feeling-row';
+      const top = document.createElement('div');
+      top.className = 'fr-top';
+      const nameWrap = document.createElement('div');
+      nameWrap.className = 'fr-name';
+      const dot = document.createElement('span');
+      dot.className = 'fr-dot';
+      dot.style.background = f.color;
+      nameWrap.appendChild(dot);
+      nameWrap.appendChild(document.createTextNode(f.name));
+      top.appendChild(nameWrap);
+      const rm = document.createElement('button');
+      rm.className = 'fr-remove';
+      rm.textContent = '\u2715 remove';
+      rm.addEventListener('click', function(){ removeSelected(f.name); });
+      top.appendChild(rm);
+      row.appendChild(top);
+
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'field';
+      inp.placeholder = 'One sentence: what triggers this feeling?';
+      inp.value = f.trigger || "";
+      inp.addEventListener('input', function(e){ f.trigger = e.target.value; scheduleSave(); });
+      row.appendChild(inp);
+
+      wrap.appendChild(row);
+    });
+  }
+
+  // ===================== Step panel builders =====================
+  function buildStep1(){
+    const sec = document.createElement('section');
+    sec.className = 'step-panel'; sec.id = 'panel-1';
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = '<h2>Step 1 &mdash; Define the Goal</h2>' +
+      '<p class="hint">Guidelines: be specific, connect to your values, and frame this as expression &mdash; not just changing the other person.</p>';
+    addStateField(card, 'What do I hope to accomplish?', '', 'goal');
+    addStateField(card, 'WHY does this matter to me?', '', 'goalWhy');
+    sec.appendChild(card);
+    document.getElementById('stepPanel').appendChild(sec);
+  }
+
+  function buildStep2(){
+    const sec = document.createElement('section');
+    sec.className = 'step-panel'; sec.id = 'panel-2';
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML =
+      '<h2>Step 2 &mdash; Identify Your Feelings</h2>' +
+      '<p class="hint">Tap a feeling on the wheel to explore it. Use the center as a guide, then choose from the second or third ring for specificity. Pick 2&ndash;5 feelings, then add a one-sentence trigger for each below.</p>' +
+      '<div id="selected-box"><div id="sel-dot"></div><div style="flex:1;"><div id="sel-text" style="color:#9490a8;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:400;">Tap the wheel to identify a feeling</div></div></div>' +
+      '<svg id="wheel" width="320" height="320" viewBox="-170 -170 340 340" style="display:block;margin:0 auto;cursor:pointer;"></svg>' +
+      '<div id="chips-label" style="display:none;font-size:10px;font-weight:600;color:#9490a8;letter-spacing:.08em;text-transform:uppercase;margin:14px 0 8px;text-align:center;">Selected feelings</div>' +
+      '<div id="chips" style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px;min-height:10px;"></div>' +
+      '<div id="triggerList" style="margin-top:14px;"></div>' +
+      '<button id="continueWheelBtn" class="nav-btn primary" style="display:none;width:100%;margin-top:14px;">Continue to Step 3 &rarr;</button>';
+    sec.appendChild(card);
+    document.getElementById('stepPanel').appendChild(sec);
+    document.getElementById('continueWheelBtn').addEventListener('click', function(){ goToStep(3); });
+  }
+
+  function buildStep3(){
+    const sec = document.createElement('section');
+    sec.className = 'step-panel'; sec.id = 'panel-3';
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = '<h2>Step 3 &mdash; Write About Each Feeling</h2>' +
+      '<p class="hint">For each emotion you identified, work through these questions honestly.</p>' +
+      '<div id="step3Content"></div>';
+    sec.appendChild(card);
+    document.getElementById('stepPanel').appendChild(sec);
+  }
+  function renderStep3Content(){
+    const c = document.getElementById('step3Content');
+    c.innerHTML = "";
+    if (state.feelings.length === 0){
+      const div = document.createElement('div');
+      div.className = 'empty-note';
+      div.textContent = "You haven't identified any feelings yet.";
+      const btn = document.createElement('button');
+      btn.className = 'nav-btn';
+      btn.textContent = '\u2190 Go to Step 2';
+      btn.addEventListener('click', function(){ goToStep(2); });
+      div.appendChild(document.createElement('br'));
+      div.appendChild(btn);
+      c.appendChild(div);
+      return;
+    }
+    state.feelings.forEach(function(f){
+      const card = document.createElement('div');
+      card.className = 'feeling-card';
+      const h3 = document.createElement('h3');
+      const dot = document.createElement('span'); dot.className = 'fc-dot'; dot.style.background = f.color;
+      h3.appendChild(dot);
+      h3.appendChild(document.createTextNode(f.name));
+      card.appendChild(h3);
+      addQA(card, 'a. Why do I feel this way?', 'Explain the situation or pattern generating this emotion. Be honest.', f, 'why');
+      addQA(card, 'b. Is the reason I feel this way true or real?', 'Test your perception \u2014 am I making assumptions, or filling gaps with fears?', f, 'trueReal');
+      addQA(card, 'c. What evidence supports this feeling?', 'List concrete facts: specific examples, dates, incidents, patterns.', f, 'evidence');
+      addQA(card, "d. If the evidence doesn't support the feeling, what does it support?", 'Consider alternative explanations. Your feelings are valid regardless.', f, 'alt');
+      c.appendChild(card);
+    });
+  }
+
+  function buildStep4(){
+    const sec = document.createElement('section');
+    sec.className = 'step-panel'; sec.id = 'panel-4';
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = '<h2>Step 4 &mdash; Express How You\'d Like to Be Treated</h2>';
+    addStateField(card, 'What you want', 'Be specific and actionable. Focus on behaviors, not attitudes. Keep requests realistic.', 'want');
+    addStateField(card, 'Your boundaries', 'State what you will or won\'t accept. Use "I need..." not "You must..."', 'boundaries');
+    addStateField(card, 'Consequences', 'State what YOU will do \u2014 not what you\'ll force them to do. Frame this as self-protection, not punishment. Examples: "I will need to reconsider...", "I\'ll set boundaries around...", "I won\'t be able to continue..."', 'consequences');
+    sec.appendChild(card);
+    document.getElementById('stepPanel').appendChild(sec);
+  }
+
+  function buildStep5(){
+    const sec = document.createElement('section');
+    sec.className = 'step-panel'; sec.id = 'panel-5';
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = '<h2>Step 5 &mdash; Reflect</h2><p class="hint">Review what you\'ve written and check in with yourself.</p>';
+    const checklist = document.createElement('div'); checklist.className = 'checklist';
+    const items = [
+      { key:'clear', label:'Does this clearly express my feelings?' },
+      { key:'iStatements', label:'Do I use "I" statements without blame?' },
+      { key:'vulnerable', label:'Am I expressing vulnerability, not weaponizing emotions?' },
+      { key:'noAbsolutes', label:'Have I removed "you always / never" and character attacks?' }
+    ];
+    items.forEach(function(item){
+      const label = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!state.reflectionChecks[item.key];
+      cb.addEventListener('change', function(e){ state.reflectionChecks[item.key] = e.target.checked; scheduleSave(); });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(item.label));
+      checklist.appendChild(label);
+    });
+    card.appendChild(checklist);
+    addStateField(card, 'Reflection notes', 'What needs to be adjusted or refined? Is your language blaming, or expressing?', 'reflectionNotes');
+    sec.appendChild(card);
+    document.getElementById('stepPanel').appendChild(sec);
+  }
+
+  function buildStep6(){
+    const sec = document.createElement('section');
+    sec.className = 'step-panel'; sec.id = 'panel-6';
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = '<h2>Step 6 &mdash; Prepare Communication</h2>';
+    addStateField(card, 'Will this make them defensive? How can I adjust?', '', 'defensive');
+    addStateField(card, 'What\'s my opening?', 'Lead with your goal or intention.', 'opening');
+    addStateField(card, 'Considering what I know about this person, how should I tailor this?', '', 'tailoring');
+
+    const fmtLabel = document.createElement('label');
+    fmtLabel.className = 'field-label';
+    fmtLabel.textContent = 'Format';
+    card.appendChild(fmtLabel);
+    const fmtWrap = document.createElement('div');
+    fmtWrap.className = 'format-options';
+    ['In-person','Phone call','Letter','Email','Text'].forEach(function(opt){
+      const pill = document.createElement('span');
+      pill.className = 'format-pill' + (state.format === opt ? ' selected' : '');
+      pill.textContent = opt;
+      pill.addEventListener('click', function(){
+        state.format = opt;
+        Array.prototype.forEach.call(fmtWrap.children, function(c){ c.classList.remove('selected'); });
+        pill.classList.add('selected');
+        scheduleSave();
+      });
+      fmtWrap.appendChild(pill);
+    });
+    card.appendChild(fmtWrap);
+
+    const note = document.createElement('p');
+    note.className = 'field-hint';
+    note.style.marginTop = '14px';
+    note.textContent = 'Optional: get feedback from a trusted friend, therapist, or use AI to refine tone while keeping your authentic voice \u2014 that\'s what Step 8 helps with.';
+    card.appendChild(note);
+
+    sec.appendChild(card);
+    document.getElementById('stepPanel').appendChild(sec);
+  }
+
+  function buildStep7(){
+    const sec = document.createElement('section');
+    sec.className = 'step-panel'; sec.id = 'panel-7';
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = '<h2>Step 7 &mdash; Draft Your Communication</h2>';
+    addStateField(card, 'Draft', 'Use this space to draft what you want to say \u2014 a script, email, letter, or just the essence of what you need to express.', 'draft');
+    sec.appendChild(card);
+    document.getElementById('stepPanel').appendChild(sec);
+  }
+
+  function buildStep8(){
+    const sec = document.createElement('section');
+    sec.className = 'step-panel'; sec.id = 'panel-8';
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = '<h2>Step 8 &mdash; Your Prompt</h2><p class="hint">Everything above, organized into one piece of text.</p><div id="step8Content"></div>';
+    sec.appendChild(card);
+    document.getElementById('stepPanel').appendChild(sec);
+  }
+
+  function generatePrompt(){
+    const lines = [];
+    lines.push("I'm working through a structured process to express difficult feelings to someone, and I'd like help turning my notes into a clear, honest message.");
+    lines.push("");
+    if (state.goal || state.goalWhy){
+      lines.push("GOAL");
+      if (state.goal) lines.push("What I hope to accomplish: " + state.goal);
+      if (state.goalWhy) lines.push("Why this matters to me: " + state.goalWhy);
+      lines.push("");
+    }
+    if (state.feelings.length){
+      lines.push("FEELINGS I'VE IDENTIFIED");
+      state.feelings.forEach(function(f){
+        lines.push("- " + f.name + (f.trigger ? " (triggered when: " + f.trigger + ")" : ""));
+        if (f.why) lines.push("  Why I feel this way: " + f.why);
+        if (f.trueReal) lines.push("  Is this perception accurate: " + f.trueReal);
+        if (f.evidence) lines.push("  Evidence: " + f.evidence);
+        if (f.alt) lines.push("  Alternative explanation I considered: " + f.alt);
+      });
+      lines.push("");
+    }
+    if (state.want || state.boundaries || state.consequences){
+      lines.push("WHAT I NEED");
+      if (state.want) lines.push("What I want: " + state.want);
+      if (state.boundaries) lines.push("My boundaries: " + state.boundaries);
+      if (state.consequences) lines.push("Consequences I'm prepared to follow through on (about my own actions, not controlling theirs): " + state.consequences);
+      lines.push("");
+    }
+    if (state.reflectionNotes){
+      lines.push("MY OWN REFLECTION");
+      lines.push(state.reflectionNotes);
+      lines.push("");
+    }
+    if (state.format || state.opening || state.tailoring || state.defensive){
+      lines.push("HOW I WANT TO DELIVER THIS");
+      if (state.format) lines.push("Format: " + state.format);
+      if (state.opening) lines.push("My opening line / intention: " + state.opening);
+      if (state.tailoring) lines.push("What I know about this person that should shape the tone: " + state.tailoring);
+      if (state.defensive) lines.push("What might make them defensive, and how I want to head that off: " + state.defensive);
+      lines.push("");
+    }
+    if (state.draft){
+      lines.push("MY ROUGH DRAFT (use as a starting point, don't discard it)");
+      lines.push(state.draft);
+      lines.push("");
+    }
+    lines.push("Please write this using 'I' statements, without blame or character attacks (no 'you always/never'), expressing vulnerability rather than weaponizing these feelings. Keep it honest, direct, and in my natural voice \u2014 not overly clinical or vague.");
+    return lines.join("\n");
+  }
+
+  function renderStep8Content(){
+    const c = document.getElementById('step8Content');
+    const text = generatePrompt();
+    c.innerHTML = "";
+    const box = document.createElement('div');
+    box.className = 'output-box';
+    box.textContent = text;
+    c.appendChild(box);
+
+    const row = document.createElement('div');
+    row.className = 'copy-row';
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'nav-btn primary';
+    copyBtn.textContent = 'Copy prompt';
+    copyBtn.addEventListener('click', function(){
+      try{
+        navigator.clipboard.writeText(text).then(function(){
+          copyBtn.textContent = 'Copied!';
+          setTimeout(function(){ copyBtn.textContent = 'Copy prompt'; }, 1500);
+        });
+      }catch(e){ console.error(e); }
+    });
+    row.appendChild(copyBtn);
+
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'nav-btn';
+    dlBtn.textContent = 'Download as text';
+    dlBtn.addEventListener('click', function(){
+      const blob = new Blob([text], { type:'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'conflict-resolution-prompt.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+    row.appendChild(dlBtn);
+    c.appendChild(row);
+
+    const note = document.createElement('p');
+    note.className = 'field-hint';
+    note.style.marginTop = '14px';
+    note.textContent = "Paste this into Claude, another AI, or just use it as your own organized notes. This is about resolution within yourself first \u2014 being heard by others is the bonus.";
+    c.appendChild(note);
+  }
+
+  // ===================== Nav + lifecycle =====================
+  function buildStepsNav(){
+    const nav = document.getElementById('stepsNav');
+    nav.innerHTML = "";
+    STEP_LABELS.forEach(function(lbl, i){
+      const n = i + 1;
+      const d = document.createElement('div');
+      d.className = 'step-dot';
+      d.dataset.step = n;
+      d.innerHTML = '<div class="num">' + n + '</div><div class="lbl">' + lbl + '</div>';
+      d.addEventListener('click', function(){ goToStep(n); });
+      nav.appendChild(d);
+    });
+  }
+  function updateNavHighlight(n){
+    const dots = document.querySelectorAll('.step-dot');
+    dots.forEach(function(d){
+      const step = parseInt(d.dataset.step, 10);
+      d.classList.remove('active','done');
+      if (step === n) d.classList.add('active');
+      else if (step < n) d.classList.add('done');
+    });
+  }
+  function goToStep(n){
+    if (n < 1) n = 1;
+    if (n > TOTAL_STEPS) n = TOTAL_STEPS;
+    currentStep = n;
+    document.querySelectorAll('.step-panel').forEach(function(p){ p.classList.remove('active'); });
+    const panel = document.getElementById('panel-' + n);
+    if (panel) panel.classList.add('active');
+    updateNavHighlight(n);
+    document.getElementById('backBtn').disabled = (n === 1);
+    document.getElementById('nextBtn').style.display = (n === TOTAL_STEPS) ? 'none' : 'inline-block';
+    document.getElementById('stepIndicator').textContent = 'Step ' + n + ' of ' + TOTAL_STEPS;
+    if (n === 3) renderStep3Content();
+    if (n === 8) renderStep8Content();
+    scheduleSave();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  function buildAllPanels(){
+    document.getElementById('stepPanel').innerHTML = "";
+    buildStep1(); buildStep2(); buildStep3(); buildStep4();
+    buildStep5(); buildStep6(); buildStep7(); buildStep8();
+    buildWheel();
+    renderChips();
+    renderFeelingTriggerList();
+    if (state.feelings.length){
+      const last = state.feelings[state.feelings.length - 1];
+      updateSelectedBox(last.name, last.color);
+    } else {
+      updateSelectedBox(null, null);
+    }
+  }
+
+  document.getElementById('backBtn').addEventListener('click', function(){ goToStep(currentStep - 1); });
+  document.getElementById('nextBtn').addEventListener('click', function(){ goToStep(currentStep + 1); });
+  document.getElementById('startOverBtn').addEventListener('click', function(){
+    if (confirm("Start a brand new entry? This clears everything you've written.")){
+      state = defaultState();
+      currentStep = 1;
+      buildAllPanels();
+      persist();
+      goToStep(1);
+    }
+  });
+
+  function init(){
+    load();
+    buildStepsNav();
+    buildAllPanels();
+    goToStep(currentStep);
+  }
+
+  init();
+
+})();
+</script>
+</body>
+</html>
