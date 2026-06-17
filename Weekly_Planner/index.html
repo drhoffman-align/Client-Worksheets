@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Weekly Time-Block Planner</title>
+<style>
+  :root{
+    --bg:#F3F4F2;
+    --surface:#FFFFFF;
+    --ink:#1B2220;
+    --muted:#6B7280;
+    --line:#E3E5E1;
+    --accent:#0F6E64;
+    --accent-dark:#0A5048;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .app{
+    max-width:1240px;
+    margin:0 auto;
+    padding:28px 22px 60px;
+  }
+  header.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-bottom:22px;
+  }
+  h1{
+    font-size:26px;
+    letter-spacing:-0.01em;
+    margin:0 0 4px;
+    font-weight:700;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:13.5px;
+    margin:0;
+  }
+  .toolbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  button{
+    font-family:inherit;
+    font-size:13px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    border-radius:8px;
+    padding:7px 12px;
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  button:hover{ border-color:var(--accent); }
+  label.weekend-toggle{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    color:var(--muted);
+    user-select:none;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns:270px 1fr;
+    gap:20px;
+  }
+  @media (max-width:920px){
+    .layout{ grid-template-columns:1fr; }
+  }
+  aside{ align-self:start; }
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 14px 16px;
+    margin-bottom:16px;
+  }
+  .panel h2{
+    font-size:12.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--muted);
+    margin:0 0 10px;
+  }
+  .hint{ font-size:11.5px; color:var(--muted); margin:2px 0 0; }
+  .chip-list{ display:flex; flex-direction:column; gap:6px; }
+  .chip{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:6px 8px; border-radius:8px; border:1px solid var(--line); font-size:13px;
+  }
+  .chip-label{ display:flex; align-items:center; gap:7px; min-width:0; }
+  .chip-label span.txt{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+  .chip-actions{ display:flex; gap:2px; flex:0 0 auto; }
+  .chip-actions button{
+    border:none; background:transparent; padding:2px 6px; font-size:13px;
+    cursor:pointer; color:var(--muted); border-radius:5px;
+  }
+  .chip-actions button.add-btn:hover{ color:var(--accent); background:#EAF4F2; }
+  .chip-actions button.remove-btn:hover{ color:#B91C1C; background:#FBE9E9; }
+  .catalog-scroll{ max-height:440px; overflow-y:auto; padding-right:4px; }
+  details.group{ margin-bottom:4px; }
+  details.group summary{
+    cursor:pointer; font-size:12.5px; font-weight:600; color:var(--ink);
+    padding:5px 0; list-style:none; display:flex; align-items:center; gap:7px;
+  }
+  details.group summary::-webkit-details-marker{ display:none; }
+  .pill-wrap{ display:flex; flex-wrap:wrap; gap:6px; padding:4px 0 8px 14px; }
+  .pill{
+    display:inline-flex; align-items:center; gap:5px; border:1px solid var(--line);
+    background:#fff; padding:4px 9px; border-radius:999px; font-size:12px; cursor:pointer;
+    user-select:none; transition:background .15s, border-color .15s;
+  }
+  .pill .dot{ width:6px; height:6px; }
+  .pill.selected{ font-weight:700; border-color:transparent; }
+  .custom-add{ display:flex; gap:6px; margin-top:10px; }
+  .custom-add input{
+    flex:1; border:1px solid var(--line); border-radius:6px; padding:5px 7px; font-size:12.5px;
+    font-family:inherit;
+  }
+  .custom-add button{ font-size:12px; padding:5px 10px; }
+  .planner-wrap{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:auto;
+  }
+  table{
+    border-collapse:collapse;
+    width:100%;
+    min-width:760px;
+  }
+  th{
+    text-align:left;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--muted);
+    padding:12px 10px 10px;
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    background:var(--surface);
+  }
+  th.daycol{ min-width:120px; }
+  td{
+    padding:6px 8px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  tr.row{ border-left:4px solid transparent; }
+  .row-label-cell{ min-width:150px; }
+  .row-label-cell input{ font-weight:600; }
+  .row-time-cell{ min-width:130px; }
+  input.cell-input, textarea.cell-input{
+    width:100%;
+    border:1px solid transparent;
+    background:transparent;
+    font-family:inherit;
+    font-size:13.5px;
+    color:var(--ink);
+    padding:7px 6px;
+    border-radius:6px;
+    resize:none;
+  }
+  input.cell-input:hover, textarea.cell-input:hover{ border-color:var(--line); }
+  input.cell-input:focus, textarea.cell-input:focus{
+    outline:none; border-color:var(--accent); background:var(--surface);
+  }
+  textarea.cell-input{ min-height:34px; line-height:1.3; font-family:inherit; }
+  .row-controls{ display:flex; gap:4px; align-items:center; white-space:nowrap; }
+  .dot-btn{ width:18px; height:18px; border-radius:50%; border:1px solid var(--line); padding:0; cursor:pointer; }
+  .del-btn{ border:none; background:transparent; color:var(--muted); font-size:14px; padding:2px 4px; cursor:pointer; }
+  .del-btn:hover{ color:#B91C1C; }
+  .add-row-bar{ padding:12px; display:flex; justify-content:flex-start; }
+  .empty-state{ padding:30px; text-align:center; color:var(--muted); font-size:13px; }
+  footer.note{
+    margin-top:14px; font-size:12px; color:var(--muted);
+    display:flex; align-items:center; gap:8px;
+  }
+  .saved-pill{ font-size:11px; color:var(--accent); opacity:0; transition:opacity .3s; }
+  .saved-pill.show{ opacity:1; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div>
+      <h1>Weekly Time-Block Planner</h1>
+      <p class="sub">Click any cell to edit. Saved on this device only — nothing is sent anywhere.</p>
+    </div>
+    <div class="toolbar">
+      <label class="weekend-toggle">
+        <input type="checkbox" id="weekendToggle">
+        Include Sat / Sun
+      </label>
+      <button id="addRowBtn">+ Add blank row</button>
+      <button id="resetBtn">Reset everything</button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <aside>
+      <div class="panel">
+        <h2>My Areas of Life</h2>
+        <div class="chip-list" id="myAreasList"></div>
+        <p class="hint" id="myAreasHint">Click an area below to add it here.</p>
+        <div class="custom-add">
+          <input type="text" id="customAreaInput" placeholder="Add your own area...">
+          <button id="customAreaBtn">Add</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Browse Areas of Life</h2>
+        <div class="catalog-scroll" id="catalog"></div>
+      </div>
+    </aside>
+
+    <div>
+      <div class="planner-wrap">
+        <table id="plannerTable">
+          <thead><tr id="headRow"></tr></thead>
+          <tbody id="plannerBody"></tbody>
+        </table>
+        <div class="add-row-bar">
+          <button id="addRowBtn2">+ Add blank row</button>
+        </div>
+      </div>
+      <footer class="note">
+        <span>Pick areas on the left, then click + on any chip to drop it into your week as a row.</span>
+        <span class="saved-pill" id="savedPill">Saved</span>
+      </footer>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+
+  const COLORS = {
+    purple: { accent:"#7C3AED", tint:"#F1EAFE" },
+    amber:  { accent:"#C2730C", tint:"#FBEFE0" },
+    blue:   { accent:"#2563EB", tint:"#E7EEFD" },
+    rose:   { accent:"#DB2777", tint:"#FCE7F3" },
+    slate:  { accent:"#475569", tint:"#F1F5F9" }
+  };
+  const COLOR_ORDER = ["purple","amber","blue","rose","slate"];
+
+  const AREA_CATALOG = [
+    { group:"Society", color:"blue",
+      areas:["Finance","Recognition","Clients","Partners","Family & Friends"] },
+    { group:"Labor", color:"amber",
+      areas:["Career","Profession & Qualification","Value Creation","Business","Innovations"] },
+    { group:"Development", color:"rose",
+      areas:["Intelligence","Knowledge","Skills","Science & Research","Politics & Social Impact"] },
+    { group:"Health", color:"purple",
+      areas:["Nutrition","Sport & Physical Activity","Stress Management","Environment","Rest & Recovery"] },
+    { group:"Daily Essentials", color:"slate",
+      areas:["Sleep","Meals","Domestic / Chores","Self-Improvement","Spirituality","Recreation / Hobbies","Social Connections"] }
+  ];
+
+  const AREA_COLOR = {};
+  AREA_CATALOG.forEach(g => g.areas.forEach(a => AREA_COLOR[a] = g.color));
+
+  const DAY_KEYS_BASE = ["mon","tue","wed","thu","fri"];
+  const DAY_KEYS_WEEKEND = ["sat","sun"];
+  const DAY_LABELS = { mon:"Mon", tue:"Tue", wed:"Wed", thu:"Thu", fri:"Fri", sat:"Sat", sun:"Sun" };
+
+  function emptyDays(){
+    const d = {};
+    DAY_KEYS_BASE.concat(DAY_KEYS_WEEKEND).forEach(k => d[k] = "");
+    return d;
+  }
+  function cryptoId(){ return 'r' + Math.random().toString(36).slice(2,10); }
+
+  let rows = [];
+  let myAreas = [];
+  let includeWeekend = false;
+  let saveTimer = null;
+
+  const plannerBody = document.getElementById('plannerBody');
+  const headRow = document.getElementById('headRow');
+  const catalogEl = document.getElementById('catalog');
+  const myAreasList = document.getElementById('myAreasList');
+  const myAreasHint = document.getElementById('myAreasHint');
+  const weekendToggle = document.getElementById('weekendToggle');
+  const savedPill = document.getElementById('savedPill');
+  const customAreaInput = document.getElementById('customAreaInput');
+
+  function activeDayKeys(){
+    return includeWeekend ? DAY_KEYS_BASE.concat(DAY_KEYS_WEEKEND) : DAY_KEYS_BASE.slice();
+  }
+
+  function colorFor(name){
+    return AREA_COLOR[name] || 'slate';
+  }
+
+  // ---------- Catalog (Browse Areas of Life) ----------
+  function renderCatalog(){
+    catalogEl.innerHTML = "";
+    AREA_CATALOG.forEach(g => {
+      const details = document.createElement('details');
+      details.className = 'group';
+      details.open = true;
+
+      const summary = document.createElement('summary');
+      const sdot = document.createElement('span');
+      sdot.className = 'dot';
+      sdot.style.background = COLORS[g.color].accent;
+      summary.appendChild(sdot);
+      summary.appendChild(document.createTextNode(g.group));
+      details.appendChild(summary);
+
+      const wrap = document.createElement('div');
+      wrap.className = 'pill-wrap';
+
+      g.areas.forEach(name => {
+        const pill = document.createElement('span');
+        pill.className = 'pill' + (myAreas.includes(name) ? ' selected' : '');
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = COLORS[g.color].accent;
+        pill.appendChild(dot);
+        pill.appendChild(document.createTextNode(name));
+        if (myAreas.includes(name)){
+          pill.style.background = COLORS[g.color].tint;
+        }
+        pill.addEventListener('click', () => toggleArea(name));
+        wrap.appendChild(pill);
+      });
+
+      details.appendChild(wrap);
+      catalogEl.appendChild(details);
+    });
+  }
+
+  function toggleArea(name){
+    const i = myAreas.indexOf(name);
+    if (i === -1) myAreas.push(name);
+    else myAreas.splice(i, 1);
+    scheduleSave();
+    renderCatalog();
+    renderMyAreas();
+  }
+
+  // ---------- My Areas of Life ----------
+  function renderMyAreas(){
+    myAreasList.innerHTML = "";
+    myAreasHint.style.display = myAreas.length ? 'none' : 'block';
+
+    myAreas.forEach(name => {
+      const color = colorFor(name);
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+
+      const labelWrap = document.createElement('div');
+      labelWrap.className = 'chip-label';
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.background = COLORS[color].accent;
+      labelWrap.appendChild(dot);
+      const txt = document.createElement('span');
+      txt.className = 'txt';
+      txt.textContent = name;
+      labelWrap.appendChild(txt);
+      chip.appendChild(labelWrap);
+
+      const actions = document.createElement('div');
+      actions.className = 'chip-actions';
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-btn';
+      addBtn.title = 'Add to schedule as a row';
+      addBtn.textContent = '+';
+      addBtn.addEventListener('click', () => addRow(name, color));
+      actions.appendChild(addBtn);
+
+      const rmBtn = document.createElement('button');
+      rmBtn.className = 'remove-btn';
+      rmBtn.title = 'Remove from My Areas of Life';
+      rmBtn.textContent = '✕';
+      rmBtn.addEventListener('click', () => toggleArea(name));
+      actions.appendChild(rmBtn);
+
+      chip.appendChild(actions);
+      myAreasList.appendChild(chip);
+    });
+  }
+
+  function addCustomArea(){
+    const val = customAreaInput.value.trim();
+    if (!val) return;
+    if (!myAreas.includes(val)) myAreas.push(val);
+    customAreaInput.value = "";
+    scheduleSave();
+    renderMyAreas();
+  }
+
+  // ---------- Schedule grid ----------
+  function renderHead(){
+    headRow.innerHTML = "";
+    const timeTh = document.createElement('th');
+    timeTh.textContent = "Time";
+    headRow.appendChild(timeTh);
+    activeDayKeys().forEach(k => {
+      const th = document.createElement('th');
+      th.className = "daycol";
+      th.textContent = DAY_LABELS[k];
+      headRow.appendChild(th);
+    });
+    const blank = document.createElement('th');
+    headRow.appendChild(blank);
+  }
+
+  function renderRows(){
+    plannerBody.innerHTML = "";
+
+    if (rows.length === 0){
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.className = 'empty-state';
+      td.colSpan = 2 + activeDayKeys().length;
+      td.textContent = "No blocks yet — add areas on the left, then click + to drop them into your week.";
+      tr.appendChild(td);
+      plannerBody.appendChild(tr);
+      return;
+    }
+
+    rows.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.className = "row";
+      tr.style.borderLeftColor = COLORS[row.color].accent;
+      tr.style.background = COLORS[row.color].tint + "55";
+
+      tr.title = row.label;
+
+      const timeTd = document.createElement('td');
+      timeTd.className = "row-time-cell";
+      const timeInput = document.createElement('input');
+      timeInput.className = "cell-input";
+      timeInput.placeholder = "e.g. 8-10am";
+      timeInput.value = row.time;
+      timeInput.addEventListener('input', e => { row.time = e.target.value; scheduleSave(); });
+      timeTd.appendChild(timeInput);
+      tr.appendChild(timeTd);
+
+      activeDayKeys().forEach(k => {
+        const td = document.createElement('td');
+        const ta = document.createElement('textarea');
+        ta.className = "cell-input";
+        ta.placeholder = "Area";
+        ta.value = row.days[k] || "";
+        ta.addEventListener('input', e => { row.days[k] = e.target.value; scheduleSave(); });
+        td.appendChild(ta);
+        tr.appendChild(td);
+      });
+
+      const controlsTd = document.createElement('td');
+      const controls = document.createElement('div');
+      controls.className = "row-controls";
+
+      const dotBtn = document.createElement('button');
+      dotBtn.className = "dot-btn";
+      dotBtn.style.background = COLORS[row.color].accent;
+      dotBtn.title = row.label + " — click to change row color";
+      dotBtn.addEventListener('click', () => {
+        const idx = COLOR_ORDER.indexOf(row.color);
+        row.color = COLOR_ORDER[(idx + 1) % COLOR_ORDER.length];
+        scheduleSave();
+        renderRows();
+      });
+      controls.appendChild(dotBtn);
+
+      const delBtn = document.createElement('button');
+      delBtn.className = "del-btn";
+      delBtn.textContent = "✕";
+      delBtn.title = "Delete row";
+      delBtn.addEventListener('click', () => {
+        rows = rows.filter(r => r.id !== row.id);
+        scheduleSave();
+        renderRows();
+      });
+      controls.appendChild(delBtn);
+
+      controlsTd.appendChild(controls);
+      tr.appendChild(controlsTd);
+
+      plannerBody.appendChild(tr);
+    });
+  }
+
+  function addRow(label, color){
+    rows.push({ id: cryptoId(), label: label || "New block", time:"", color: color || "slate", days: emptyDays() });
+    scheduleSave();
+    renderRows();
+  }
+
+  // ---------- Persistence ----------
+  function scheduleSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persist, 400);
+  }
+
+  function persist(){
+    try{
+      localStorage.setItem('weekly-planner-rows', JSON.stringify(rows));
+      localStorage.setItem('weekly-planner-weekend', JSON.stringify(includeWeekend));
+      localStorage.setItem('weekly-planner-myareas', JSON.stringify(myAreas));
+      flashSaved();
+    }catch(e){
+      console.error('Storage error', e);
+    }
+  }
+
+  function flashSaved(){
+    savedPill.classList.add('show');
+    setTimeout(() => savedPill.classList.remove('show'), 900);
+  }
+
+  function load(){
+    try{
+      const r = localStorage.getItem('weekly-planner-rows');
+      rows = r ? JSON.parse(r) : [];
+    }catch(e){ rows = []; }
+
+    try{
+      const w = localStorage.getItem('weekly-planner-weekend');
+      includeWeekend = w ? JSON.parse(w) : false;
+    }catch(e){ includeWeekend = false; }
+
+    try{
+      const m = localStorage.getItem('weekly-planner-myareas');
+      myAreas = m ? JSON.parse(m) : [];
+    }catch(e){ myAreas = []; }
+
+    weekendToggle.checked = includeWeekend;
+    renderHead();
+    renderRows();
+    renderCatalog();
+    renderMyAreas();
+  }
+
+  document.getElementById('addRowBtn').addEventListener('click', () => addRow());
+  document.getElementById('addRowBtn2').addEventListener('click', () => addRow());
+  document.getElementById('customAreaBtn').addEventListener('click', addCustomArea);
+  customAreaInput.addEventListener('keydown', e => { if (e.key === 'Enter') addCustomArea(); });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (confirm("Reset everything — your schedule rows and selected areas? This cannot be undone.")){
+      rows = [];
+      myAreas = [];
+      scheduleSave();
+      renderRows();
+      renderCatalog();
+      renderMyAreas();
+    }
+  });
+
+  weekendToggle.addEventListener('change', e => {
+    includeWeekend = e.target.checked;
+    scheduleSave();
+    renderHead();
+    renderRows();
+  });
+
+  load();
+
+})();
+</script>
+</body>
+</html>
